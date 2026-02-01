@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tatona</title>
+    <link rel="icon" type="image/x-icon" href="ico.png">
+    <style>
+        body {
+            background-color: pink;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #container {
+            text-align: center;
+            border-radius: 20px;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+            position: relative;
+        }
+
+        h1 {
+            color: #d44197;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: relative; /* Importante per posizionare i cuori rispetto a questo se serve */
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease; /* Transizione fluida per l'ingrandimento */
+        }
+
+        #si {
+            background-color: rgb(212, 65, 151);
+            color: white;
+            font-size: 20px;
+            position: relative;
+            /* Animazione tremolio */
+            animation: tilt-shaking 0.3s infinite;
+        }
+
+        /* Definizione del tremolio */
+        @keyframes tilt-shaking {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(2deg); }
+            50% { transform: rotate(0eg); }
+            75% { transform: rotate(-2deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        #no {
+            background-color: lightgray;
+            color: black;
+            font-size: 20px;
+        }
+
+        /* Contenitore finale nascosto */
+        #final-content {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #message {
+            font-size: 24px;
+            color: #d44197;
+            font-weight: bold;
+        }
+
+        /* Stile immagine orsetti */
+        #bears-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Animazione cuori */
+        .heart {
+            position: fixed;
+            color: #e0456a;
+            font-size: 24px;
+            pointer-events: none; /* Per poter cliccare attraverso i cuori */
+            z-index: 50;
+            animation: flyOut 2s ease-out forwards;
+        }
+
+        @keyframes flyOut {
+            0% {
+                transform: translate(0, 0) scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <div id="initial-content">
+            <img id="us" src="1.jpeg" alt="us" style="border-radius: 15px; width: 50%; height: 50%;">
+            <h1 id="question">Gaia will you be my valentine?</h1>
+            <br>
+            <div class="buttons">
+                <button id="si">Yes</button>
+                <button id="no">No</button>
+            </div>
+        </div>
+
+        <div id="final-content">
+            <div id="message">I knew you would say yes my poookieeeeeeee!</div>
+            <img id="love" src="2.jpeg" alt="love" style="border-radius: 15px; width: 50%; height: 50%;">
+        </div>
+    </div>
+
+    <script>
+        const btnSi = document.getElementById('si');
+        const btnNo = document.getElementById('no');
+        const initialContent = document.getElementById('initial-content');
+        const finalContent = document.getElementById('final-content');
+        
+        // Frasi da mostrare sul tasto No
+        const phrases = [
+            "No", "Are you sure?", "Really sure?", "Think again!", 
+            "Last chance!", "Surely not?", "You might regret this!", 
+            "Give it another thought!", "Are you absolutely certain?", 
+            "This could be a mistake!", "Have a heart!", "Don't be so cold!", 
+            "Change of heart?", "Wouldn't you reconsider?", 
+            "Is that your final answer?", "You're breaking my heart ;("
+        ];
+
+        let phraseIndex = 0;
+        let fontSize = 20; 
+
+        btnNo.addEventListener('click', () => {
+            phraseIndex++;
+            if (phraseIndex >= phrases.length) {
+                btnNo.style.display = 'none';
+            } else {
+                btnNo.innerText = phrases[phraseIndex];
+            }
+            
+            // Ingrandisci il bottone Si
+            fontSize += 40; 
+            btnSi.style.fontSize = fontSize + 'px';
+        });
+
+        btnSi.addEventListener('click', (e) => {
+            // 1. Calcola la posizione del bottone PRIMA di nasconderlo
+            const rect = btnSi.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            // 2. Nascondi la domanda e mostra il finale
+            initialContent.style.display = 'none';
+            finalContent.style.display = 'flex';
+
+            // 3. Genera l'esplosione di cuori da quelle coordinate
+            createHeartExplosion(centerX, centerY);
+        });
+
+        function createHeartExplosion(x, y) {
+            const heartCount = 100; // Numero di cuori
+
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.innerHTML = '&#10084;';
+                
+                // Posiziona il cuore esattamente dove era il tasto
+                heart.style.left = x + 'px';
+                heart.style.top = y + 'px';
+
+                // Calcola una direzione casuale verso l'alto e l'esterno
+                // --tx è lo spostamento orizzontale, --ty è lo spostamento verticale
+                const randomX = (Math.random() - 0.5) * 600; // Si spargono a destra e sinistra
+                const randomY = -Math.random() * 800 - 100; // Vanno verso l'alto (negativo)
+
+                heart.style.setProperty('--tx', randomX + 'px');
+                heart.style.setProperty('--ty', randomY + 'px');
+
+                // Variamo leggermente la durata per non farli muovere tutti uguali
+                const duration = Math.random() * 2 + 1; // tra 1 e 3 secondi
+                heart.style.animationDuration = duration + 's';
+
+                document.body.appendChild(heart);
+
+                // Rimuovi dopo l'animazione
+                setTimeout(() => {
+                    heart.remove();
+                }, duration * 1000);
+            }
+        }
+    </script>
+</body>
+</html>
